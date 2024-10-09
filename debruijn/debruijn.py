@@ -95,7 +95,7 @@ def get_arguments():  # pragma: no cover
     )
     return parser.parse_args()
 
-
+# 1. generator function for reading FASTQ files
 def read_fastq(fastq_file: Path) -> Iterator[str]:
     """Extract reads from fastq files."""
     with open(fastq_file, 'r') as file:
@@ -108,14 +108,11 @@ def read_fastq(fastq_file: Path) -> Iterator[str]:
                 break
             yield sequence
 
-
+# 2. Generate k-mer generator functions
 def cut_kmer(read: str, kmer_size: int) -> Iterator[str]:
-    """Cut read into kmers of size kmer_size.
-
-    :param read: (str) Sequence of a read.
-    :return: A generator object that provides the kmers (str) of size kmer_size.
-    """
-    pass
+    """Cut read into kmers of size kmer_size."""
+    for i in range(len(read) - k + 1):
+        yield read[i:i+kmer_size]
 
 
 def build_kmer_dict(fastq_file: Path, kmer_size: int) -> Dict[str, int]:
