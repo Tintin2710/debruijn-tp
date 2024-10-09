@@ -36,7 +36,7 @@ from random import randint
 import statistics
 import textwrap
 import matplotlib.pyplot as plt
-from typing import Iterator, Dict, List
+from typing import Iterator, Dict, List, Tuple
 
 matplotlib.use("Agg")
 
@@ -280,24 +280,28 @@ def get_contigs(
     :param ending_nodes: (list) A list of nodes without successors
     :return: (list) List of [contiguous sequence and their length]
     """
-    contigs = []
+    contigs_list = []
     for starting_node in starting_nodes:
         for ending_node in ending_nodes:
             if has_path(graph, starting_node, ending_node):
                 paths = all_simple_paths(graph, starting_node, ending_node)
                 for path in paths:
                     contig = "".join([path[0]] + [p[-1] for p in path[1:]])
-                    contigs.append((contig, len(contig)))
-        return contigs
+                    contigs_list.append((contig, len(contig)))
+        return contigs_list
 
 
-def save_contigs(contigs_list: List[str], output_file: Path) -> None:
+def save_contigs(contigs_list: List[Tuple[str,int]], output_file: Path) -> None:
     """Write all contigs in fasta format
 
     :param contig_list: (list) List of [contiguous sequence and their length]
     :param output_file: (Path) Path to the output file
     """
-    pass
+    with open(output_file, 'w') as file:
+        for i, (contig, length) in enumerate(contigs_list):
+            file.write(f">contig_{i} len={length}\n")
+            file.write(textwrap.fill(contig, width = 80)+ "\n")
+    
 
 
 def draw_graph(graph: DiGraph, graphimg_file: Path) -> None:  # pragma: no cover
