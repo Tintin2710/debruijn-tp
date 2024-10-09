@@ -219,7 +219,7 @@ def select_best_path(
     
     best_path = path_list[best_index]
     paths_to_remove = [path for i, path in enumerate(path_list) if i != best_index]
-    graph = remove_paths(graph, paths_to_remove, delete_entry_node, delete_sink_node)
+    remove_paths(graph, paths_to_remove, delete_entry_node, delete_sink_node)
     
     return graph
 
@@ -260,6 +260,7 @@ def simplify_bubbles(graph: DiGraph) -> DiGraph:
     :return: (nx.DiGraph) A directed graph object
     """
     bubble = False
+    count = 0
     for node in graph.nodes:
         list_predecesseurs = list(graph.predecessors(node))
         if len(list_predecesseurs) > 1:
@@ -273,7 +274,9 @@ def simplify_bubbles(graph: DiGraph) -> DiGraph:
                 break
 
     if bubble:
-        graph = solve_bubble(graph, ancestor_node, node)
+        count +=1
+        graph = simplify_bubbles(solve_bubble(graph, ancestor_node, node))
+        return graph
 
     return graph
 
@@ -416,7 +419,7 @@ def get_contigs(
 
 
 
-def save_contigs(contigs_list: List[Tuple[str,int]], output_file: Path) -> None:
+def save_contigs(contigs_list: List[str], output_file: Path) -> None:
     """Write all contigs in fasta format
 
     :param contig_list: (list) List of [contiguous sequence and their length]
