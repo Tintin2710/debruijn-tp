@@ -17,6 +17,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+import networkx as nx
 from networkx import (
     DiGraph,
     all_simple_paths,
@@ -257,7 +258,7 @@ def get_starting_nodes(graph: DiGraph) -> List[str]:
     :param graph: (nx.DiGraph) A directed graph object
     :return: (list) A list of all nodes without predecessors
     """
-    pass
+    return [node for node in graph.nodes if len(list(graph.predecessors(node))) == 0]
 
 
 def get_sink_nodes(graph: DiGraph) -> List[str]:
@@ -266,7 +267,7 @@ def get_sink_nodes(graph: DiGraph) -> List[str]:
     :param graph: (nx.DiGraph) A directed graph object
     :return: (list) A list of all nodes without successors
     """
-    pass
+    return [node for node in graph.nodes if len(list(graph.successors(node))) == 0]
 
 
 def get_contigs(
