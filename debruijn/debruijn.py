@@ -401,11 +401,13 @@ def get_contigs(
     contigs_list = []
     for starting_node in starting_nodes:
         for ending_node in ending_nodes:
-            if has_path(graph, starting_node, ending_node):
-                paths = all_simple_paths(graph, starting_node, ending_node)
-                for path in paths:
-                    contig = "".join([path[0]] + [p[-1] for p in path[1:]])
-                    contigs_list.append((contig, len(contig)))
+            if starting_node in graph and ending_node in graph:
+                if has_path(graph, starting_node, ending_node):
+                    paths = all_simple_paths(graph, starting_node, ending_node)
+                    for path in paths:
+                        contig = "".join([path[0]] + [p[-1] for p in path[1:]])
+                        contigs_list.append((contig, len(contig)))
+                        
     return contigs_list
 
 
@@ -495,3 +497,4 @@ def main() -> None:  # pragma: no cover
 
 if __name__ == "__main__":  # pragma: no cover
     main()
+
