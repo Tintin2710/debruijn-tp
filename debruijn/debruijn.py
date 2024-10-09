@@ -106,7 +106,7 @@ def read_fastq(fastq_file: Path) -> Iterator[str]:
     with open(fastq_file, 'r') as file:
         while True:
             file.readline()
-            sequence = file.readline.strip()
+            sequence = file.readline().strip()
             file.readline()
             file.readline()
             if len(sequence) == 0:
@@ -156,9 +156,9 @@ def build_graph(kmer_dict: Dict[str, int]) -> DiGraph:
         if graph.has_edge(prefix, suffix):
             graph[prefix][suffix]['weight'] += count
         else:
-            graph.add_edge(prefix, suffix, weigth = count)
+            graph.add_edge(prefix, suffix, weight = count)
     
-    return
+    return graph
 
 
 def remove_paths(
@@ -206,7 +206,16 @@ def select_best_path(
     :param delete_sink_node: (boolean) True->We remove the last node of a path
     :return: (nx.DiGraph) A directed graph object
     """
-    pass
+    weight_stdev = statistics.stdev(weight_avg_list) if len(weight_avg_list) > 1 else 0
+
+    if weight_stdev > 0:
+        best_index = weight_avg_list.index(max(weight_avg_list))
+    else:
+        length_stdev = statistics.stdev(path_length) if len(path_length) > 1 else 0
+        if length_stdev > 0:
+            best_index = path_length.index(max(path_length))
+        else:
+            best_index = random.randint(0, len(path_list) - 1)
 
 
 def path_average_weight(graph: DiGraph, path: List[str]) -> float:
@@ -297,7 +306,7 @@ def get_contigs(
                 for path in paths:
                     contig = "".join([path[0]] + [p[-1] for p in path[1:]])
                     contigs_list.append((contig, len(contig)))
-        return contigs_list
+    return contigs_list
 
 
 def save_contigs(contigs_list: List[Tuple[str,int]], output_file: Path) -> None:
