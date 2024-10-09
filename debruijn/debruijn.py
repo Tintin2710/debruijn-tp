@@ -336,7 +336,8 @@ def solve_entry_tips(graph: DiGraph, starting_nodes: List[str]) -> DiGraph:
                 node_n = node
                 break
     if len(ancestors) >= 2:
-        graph = solve_entry_tips(solve_tip_to_entry(graph, ancestors, node_n, True, False), starting_nodes)
+        graph = solve_tip_to_entry(graph, ancestors, node_n, True, False)
+        graph = solve_entry_tips(graph, starting_nodes)
 
     return graph
 
@@ -362,7 +363,8 @@ def solve_out_tips(graph: DiGraph, ending_nodes: List[str]) -> DiGraph:
                 node_n = node
                 break
     if len(successors) >= 2:
-        graph = solve_out_tips(solve_tip_to_sink(graph, successors, node_n, False, True), ending_nodes)
+        graph = solve_tip_to_sink(graph, successors, node_n, False, True)
+        graph = solve_out_tips(graph, ending_nodes)
 
     return graph
 
@@ -454,12 +456,41 @@ def main() -> None:  # pragma: no cover
     # Get arguments
     args = get_arguments()
 
-    # Fonctions de dessin du graphe
-    # A decommenter si vous souhaitez visualiser un petit
-    # graphe
-    # Plot the graph
-    # if args.graphimg_file:
-    #     draw_graph(graph, args.graphimg_file)
+    # Read the Fastq file and build the k-mer dictionary
+    print("Building k-mer dictionary...")
+    kmer_dict = build_kmer_dict(args.fastq_file, args.kmer_size)
+
+    # Build the De Bruijn graph
+    print("Building De Bruijn graph...")
+    graph = build_graph(kmer_dict)
+
+    # Solve bubbles in the graph
+    print("Solving bubbles...")
+    graph = simplify_bubbles(graph)
+
+    # Identify and solve entry and out tips
+    print("Solving entry tips...")
+    starting_nodes = get_starting_nodes(graph)
+    graph = solve_entry_tips(graph, starting_nodes)
+
+    print("Solving out tips...")
+    ending_nodes = get_sink_nodes(graph)
+    graph = solve_out_tips(graph, ending_nodes)
+
+    # Extract contigs
+    print("Extracting contigs...")
+    contigs_list = get_contigs(graph, starting_nodes, ending_nodes)
+
+    # Write the contigs to the output file
+    print(f"Writing contigs to {args.output_file}...")
+    save_contigs(contigs_list, args.output_file)
+
+    # Optionally, draw the graph if graph image file is provided
+    if args.graphimg_file:
+        print(f"Drawing graph and saving as {args.graphimg_file}...")
+        draw_graph(graph, args.graphimg_file)
+
+    print("Program finished.")
 
 
 if __name__ == "__main__":  # pragma: no cover
