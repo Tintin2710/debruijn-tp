@@ -405,10 +405,15 @@ def get_contigs(
                 if has_path(graph, starting_node, ending_node):
                     paths = all_simple_paths(graph, starting_node, ending_node)
                     for path in paths:
-                        contig = "".join([path[0]] + [p[-1] for p in path[1:]])
+                        contig = path[0]
+                        for node in path[1:]:
+                            contig += node[-1]
                         contigs_list.append((contig, len(contig)))
-                        
+                        print(f"Contig generated: {contig} of length {len(contig)}")
+            else:
+                print(f"Warning: Node {starting_node} or {ending_node} not in graph.")
     return contigs_list
+
 
 
 def save_contigs(contigs_list: List[Tuple[str,int]], output_file: Path) -> None:
