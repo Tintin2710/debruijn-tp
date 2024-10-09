@@ -111,17 +111,21 @@ def read_fastq(fastq_file: Path) -> Iterator[str]:
 # 2. Generate k-mer generator functions
 def cut_kmer(read: str, kmer_size: int) -> Iterator[str]:
     """Cut read into kmers of size kmer_size."""
-    for i in range(len(read) - k + 1):
+    for i in range(len(read) - kmer_size + 1):
         yield read[i:i+kmer_size]
 
-
+# 3. Functions to build k-mer dictionaries
 def build_kmer_dict(fastq_file: Path, kmer_size: int) -> Dict[str, int]:
-    """Build a dictionnary object of all kmer occurrences in the fastq file
-
-    :param fastq_file: (str) Path to the fastq file.
-    :return: A dictionnary object that identify all kmer occurrences.
-    """
-    pass
+    """Build a dictionnary object of all kmer occurrences in the fastq file"""
+    kmer_dict = {}
+    for read in read_fastq(fastq_file):
+        for kmer in cut_kmer(read, kmer_size):
+            if kmer in kmer_dict:
+                kmer_dict[kmer] += 1
+            else:
+                kmer_dict[kmer] = 1
+    return kmer_dict
+    
 
 
 def build_graph(kmer_dict: Dict[str, int]) -> DiGraph:
