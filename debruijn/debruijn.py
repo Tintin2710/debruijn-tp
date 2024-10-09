@@ -259,7 +259,50 @@ def simplify_bubbles(graph: DiGraph) -> DiGraph:
     :param graph: (nx.DiGraph) A directed graph object
     :return: (nx.DiGraph) A directed graph object
     """
-    pass
+    bubble = False
+    for node in graph.nodes:
+        list_predecesseurs = list(graph.predecessors(node))
+        if len(list_predecesseurs) > 1:
+            for i in range(len(list_predecesseurs)):
+                for j in range(i+1, len(list_predecesseurs)):
+                    ancestor_node = nx.lowest_common_ancestor(graph, list_predecesseurs[i], list_predecesseurs[j])
+                    if ancestor_node is not None:
+                        bubble = True
+                        break
+            if bubble:
+                break
+
+    if bubble:
+        graph = solve_bubble(graph, ancestor_node, node)
+
+    return graph
+
+
+def solve_tip(graph: DiGraph, ancestors: List[str], node: str, delete_entry_node: bool, delete_sink_node: bool) -> DiGraph:
+    """
+    Remove unwanted paths (tips) from the graph.
+
+    :param graph: (nx.DiGraph) A directed graph object
+    :param ancestors: A list of ancestor nodes
+    :param node: The node where the tip is detected
+    :param delete_entry_node: Whether to delete the entry node of the tip
+    :param delete_sink_node: Whether to delete the sink node of the tip
+    :return: The modified graph
+    """
+    for ancestor in ancestors:
+        paths = list(nx.all_simple_paths(graph, ancestor, node))
+        
+        for path in paths:
+            edges_to_remove = list(zip(path[:-1], path[1:])) 
+            if delete_entry_node and delete_sink_node:
+                graph.remove_edges_from(edges_to_remove) 
+            elif delete_entry_node:
+                graph.remove_edge(path[0], path[1])  
+            elif delete_sink_node:
+                graph.remove_edge(path[-2], path[-1]) 
+    
+    return graph
+
 
 
 def solve_entry_tips(graph: DiGraph, starting_nodes: List[str]) -> DiGraph:
@@ -269,7 +312,25 @@ def solve_entry_tips(graph: DiGraph, starting_nodes: List[str]) -> DiGraph:
     :param starting_nodes: (list) A list of starting nodes
     :return: (nx.DiGraph) A directed graph object
     """
-    pass
+    node_n = None
+    ancestors = []
+
+    for node in graph.nodes:
+        pred = list(graph.predecessors(node))
+
+        if len(pred) > 1:
+            for start in starting_nodes:
+                if (start in graph) and (nx.has_path(graph, start, node)):
+                    ancestors.append(start)
+            if len(ancestors) >= 2:
+                node_n = node
+                break
+    if len(ancestors) >= 2:
+        graph = solve_out_tips(solve_tip(graph, ancestors, node_n, True, False), starting_nodes)
+
+    return graph
+
+
 
 
 def solve_out_tips(graph: DiGraph, ending_nodes: List[str]) -> DiGraph:
@@ -279,7 +340,24 @@ def solve_out_tips(graph: DiGraph, ending_nodes: List[str]) -> DiGraph:
     :param ending_nodes: (list) A list of ending nodes
     :return: (nx.DiGraph) A directed graph object
     """
-    pass
+    node_n = None
+    ancestors = []
+
+    for node in graph.nodes:
+        succ = list(graph.successors(node))
+
+        if len(succ) > 1:
+            for end in ending_nodes:
+                if (end in graph) and (nx.has_path(graph, node, end)):
+                    ancestors.append(ending_nodes)
+            if len(ancestors) >= 2:
+                node_n = node
+                break
+    if len(ancestors) >= 2:
+        graph = solve_out_tips(solve_tip(graph, ancestors, node_n, True, False), ending_nodes)
+
+    return graph
+
 
 
 def get_starting_nodes(graph: DiGraph) -> List[str]:
